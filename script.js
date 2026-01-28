@@ -49,24 +49,60 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Apply animation to service cards and gallery items
+// Apply animation to service cards and gallery items only (not link cards)
 const animateElements = document.querySelectorAll('.service-card, .gallery-item');
-animateElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
-});
+
+// Initialize animations on page load
+function initializeAnimations() {
+    animateElements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        const isInView = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        if (!isInView) {
+            // Only hide elements that are not in view
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+        } else {
+            // Show elements that are already visible
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }
+        
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+
+    // Always show link cards immediately without animation
+    const linkCards = document.querySelectorAll('.link-card');
+    linkCards.forEach(el => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+    });
+}
+
+// Run on DOMContentLoaded and load events
+document.addEventListener('DOMContentLoaded', initializeAnimations);
+window.addEventListener('load', initializeAnimations);
+
+// Also run after a short delay to ensure DOM is ready
+setTimeout(initializeAnimations, 100);
 
 // CTA Button functionality
 const ctaButton = document.querySelector('.cta-button');
-ctaButton.addEventListener('click', () => {
-    const contactSection = document.getElementById('contact');
-    contactSection.scrollIntoView({
-        behavior: 'smooth'
+if (ctaButton) {
+    ctaButton.addEventListener('click', () => {
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+            contactSection.scrollIntoView({
+                behavior: 'smooth'
+            });
+            alert('Please fill out the contact form below or call us to book your appointment!');
+        } else {
+            // If contact section doesn't exist on current page, navigate to contact page
+            window.location.href = 'contact.html';
+        }
     });
-    alert('Please fill out the contact form below or call us to book your appointment!');
-});
+}
 
 // Add active class to navigation based on scroll position
 const sections = document.querySelectorAll('main section');
@@ -96,6 +132,12 @@ document.addEventListener('click', (e) => {
         menuToggle.classList.remove('active');
         navContainer.classList.remove('active');
     }
+});
+
+// Ensure menu is reset when page loads
+window.addEventListener('load', () => {
+    menuToggle.classList.remove('active');
+    navContainer.classList.remove('active');
 });
 
 console.log('GlamStyle Salon Website - Script loaded successfully!');
